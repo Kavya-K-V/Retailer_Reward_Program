@@ -1,97 +1,149 @@
 import "./App.css";
 import { useEffect, useState } from "react";
-import DataTable from "react-data-table-component";
+import { rewardPointsPerTrans, monthNames } from "./utils/Rewards";
 
 const columns = [
-  {
-    name: "Customer",
-    selector: (row) => row.customer,
-  },
-  {
-    name: "Month",
-    selector: (row) => row.month,
-  },
-  {
-    name: "Amount($)",
-    selector: (row) => row.amount,
-  },
-  {
-    name: "Reward Point/Transaction",
-    selector: (row) => row.reward,
-  },
+  "Customer",
+  "Date(MM-DD-YYYY)",
+  "Amount($)",
+  "Month",
+  "Reward Point/Transaction",
 ];
 
-const newColumns = [
-  {
-    name: "Month",
-    selector: (row) => row.month,
-  },
-  {
-    name: "Reward Points/Month",
-    selector: (row) => row.totReward,
-  },
-];
+const newColumns = ["Customer", "Month", "Reward Points/Month"];
 
 function App() {
   const [userData, setUserData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [displayReward, setDisplayReward] = useState(false);
-  const [selectedRow, setSelectedRow] = useState([]);
-  const [rewardData, setRewardData] = useState([]);
-  const [totalReward, setTotalReward] = useState(0);
+  const [monthRewards, setMonthRewards] = useState([]);
+  const [total, setTotal] = useState({});
+
+  const getSearchResult = async () => {
+    let response;
+    try {
+      // I have added a fake api with the desired json response.Please refer to SampleResponse.json file to view the response.
+      response = await fetch("https://dummyjson.com/c/21ce-b685-43a7-a372");
+    } catch (error) {
+      setLoading(false);
+      alert("error");
+    }
+    if (response?.ok) {
+      setLoading(false);
+      const resp = await response.json();
+      setUserData(resp);
+    } else {
+      setLoading(false);
+      alert(`error code: ${response?.status}`);
+    }
+  };
 
   useEffect(() => {
-    fetch("https://dummyjson.com/c/a874-b912-4617-a7a6")
-      .then((res) => res.json())
-      .then((resp) => {
-        //I have added a fake api with the desired json response.Please refer to SampleResponse.json file to view the response.
-        let rewardArr = [...resp];
-        rewardArr.forEach((item, i) => {
-          if (item.amount >= 100) {
-            rewardArr[i].reward = 2 * (item.amount - 100) + 1 * 50;
-          } else {
-            rewardArr[i].reward = 0;
-          }
-        });
-        setUserData(rewardArr);
-      })
-      .catch((err) => console.error(err));
+    getSearchResult();
   }, []);
 
-  const handleRowDoubleClick = (rowData) => {
-    let newData = [];
-    setSelectedRow(rowData);
-    setDisplayReward(true);
-    let filteredArr = userData.filter(
-      (item) => item.customer === rowData.customer
-    );
-    filteredArr.forEach((elem, i) => {
-      const index = newData.findIndex((x) => x.month === elem.month);
-      if (index !== -1) {
-        newData[index].totReward = newData[index].totReward + elem.reward;
+  const handleMonthlyData = () => {
+    userData.reduce((acc, cur) => {
+      const found = acc.find(
+        (val) =>
+          monthNames[new Date(val.date).getMonth()] ===
+            monthNames[new Date(cur.date).getMonth()] &&
+          val.customer === cur.customer
+      );
+      if (found) {
+        found["monthlyRewards"] =
+          rewardPointsPerTrans(found) + Number(rewardPointsPerTrans(cur));
       } else {
-        newData.push({ month: elem.month, totReward: elem.reward });
+        acc.push({ ...cur, monthlyRewards: Number(rewardPointsPerTrans(cur)) });
+      }
+      setMonthRewards(acc);
+      return acc;
+    }, []);
+  };
+
+  const getTotal = (e) => {
+    const result = {};
+    monthRewards.forEach((input) => {
+      if (input.customer === e.target.innerHTML) {
+        if (result["tot"]) {
+          result["tot"] = result["tot"] + input.monthlyRewards;
+        } else {
+          result["tot"] = input.monthlyRewards;
+        }
+        result["customer"] = e.target.innerHTML;
       }
     });
-    setTotalReward(newData.reduce((acc, o) => acc + parseInt(o.totReward), 0));
-    setRewardData(newData);
+    setTotal(result);
   };
 
   return (
     <div className="App">
-      <h1>Customer Transaction Data </h1>
-      <p>Double click on a row to view the total reward points at the bottom!</p>
-      <DataTable
-        columns={columns}
-        data={userData}
-        onRowDoubleClicked={(rowData) => handleRowDoubleClick(rowData)}
-        pagination
-        striped
-      />
-      {displayReward && (
+      {loading && <div className="loader" />}
+      {displayReward ? (
         <>
-          <h1>Reward Points Per Month for {selectedRow.customer}</h1>
-          <DataTable columns={newColumns} data={rewardData} striped />
-          <h1>Total Reward Points:{totalReward}</h1>
+          <button onClick={() => setDisplayReward(false)}>
+            Back to main page
+          </button>
+          <h1>Customer Reward Points Per Month</h1>
+          <table className="data-table-container">
+            <thead>
+              <tr>
+                {newColumns.map((item) => {
+                  return <th key={item}>{item}</th>;
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {monthRewards.map((data) => {
+                return (
+                  <tr>
+                    <td>
+                      <button onClick={(e) => getTotal(e)}>
+                        {data.customer}
+                      </button>
+                    </td>
+                    <td>{monthNames[new Date(data.date).getMonth()]}</td>
+                    <td>{data.monthlyRewards}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <h1>Total Reward Points for {total.customer} :{total.tot}</h1>
+        </>
+      ) : (
+        <>
+          <h1>Customer Transaction Data </h1>
+          <table className="data-table-container" id="tableID">
+            <thead>
+              <tr>
+                {columns.map((item) => {
+                  return <th key={item}>{item}</th>;
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {userData.map((data) => {
+                return (
+                  <tr>
+                    <td>{data.customer}</td>
+                    <td>{data.date}</td>
+                    <td>{data.amount}</td>
+                    <td>{monthNames[new Date(data.date).getMonth()]}</td>
+                    <td>{rewardPointsPerTrans(data)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <button
+            onClick={() => {
+              setDisplayReward(true);
+              handleMonthlyData();
+            }}
+          >
+            View Monthly Data
+          </button>
         </>
       )}
     </div>

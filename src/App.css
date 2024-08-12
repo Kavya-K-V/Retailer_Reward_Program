@@ -1,6 +1,31 @@
 .App {
-  text-align: center;
+  margin-left: 32px;
 }
-[data-column-id].rdt_TableCol {
-  background-color: rgb(245, 180, 180);
+table,
+th,
+td {
+  border: 1px solid;
+}
+tr:hover {
+  background-color: rgb(173, 245, 164);
+}
+th {
+  background-color: #04aa6d;
+  color: white;
+}
+td {
+  width: 20%;
+}
+.loader {
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #006fb9; /* Blue */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
