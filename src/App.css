@@ -6,9 +6,6 @@ th,
 td {
   border: 1px solid;
 }
-tr:hover {
-  background-color: rgb(173, 245, 164);
-}
 th {
   background-color: #04aa6d;
   color: white;
@@ -26,6 +23,25 @@ td {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.buttonClass,
+.customerButtonClass {
+  font-size: 16px;
+  padding: 10px 24px;
+}
+.buttonClass {
+  background-color: #04aa6d;
+  border: 1px solid green;
+  margin-top: 24px;
+}
+.customerButtonClass {
+  width: 150px;
+  background-color: #75d6b3;
+  border: 1px solid #75d6b3;
 }

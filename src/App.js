@@ -81,10 +81,14 @@ function App() {
       {loading && <div className="loader" />}
       {displayReward ? (
         <>
-          <button onClick={() => setDisplayReward(false)}>
+          <button
+            className="buttonClass"
+            onClick={() => setDisplayReward(false)}
+          >
             Back to main page
           </button>
           <h1>Customer Reward Points Per Month</h1>
+          <p>Click on the customer name to view the total rewards!</p>
           <table className="data-table-container">
             <thead>
               <tr>
@@ -98,7 +102,10 @@ function App() {
                 return (
                   <tr>
                     <td>
-                      <button onClick={(e) => getTotal(e)}>
+                      <button
+                        className="customerButtonClass"
+                        onClick={(e) => getTotal(e)}
+                      >
                         {data.customer}
                       </button>
                     </td>
@@ -109,7 +116,9 @@ function App() {
               })}
             </tbody>
           </table>
-          <h1>Total Reward Points for {total.customer} :{total.tot}</h1>
+          <h1>
+            Total Reward Points for {total.customer} :{total.tot}
+          </h1>
         </>
       ) : (
         <>
@@ -137,6 +146,7 @@ function App() {
             </tbody>
           </table>
           <button
+            className="buttonClass"
             onClick={() => {
               setDisplayReward(true);
               handleMonthlyData();
